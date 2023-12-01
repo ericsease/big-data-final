@@ -42,6 +42,24 @@ def track_id_crawl(client_id: str, client_secret: str, playlist_id: str,
 
 
 def save_track_ids():
+    """
+    Fetches track IDs from playlists specified in the 'playlist_ids.json' file and saves them.
+
+    The function reads client credentials from 'config.yaml' and retrieves playlist IDs from
+    'playlist_ids.json'. It then calls the 'track_id_crawl' function for each playlist ID to
+    crawl and save track IDs.
+
+    Note:
+        Ensure that the 'config.yaml' file contains valid credentials in the 'credentials' section,
+        and the 'playlist_ids.json' file is present with the required playlist IDs.
+
+    Raises:
+        FileNotFoundError: If either 'config.yaml' or 'playlist_ids.json' is not found.
+
+    Example:
+        save_track_ids()
+
+    """
     print("we've entered track_ids!")
     # load credentials from config.yaml
     with open('/home/airflow/airflow/dags/config.yaml', 'r') as yaml_file:
@@ -60,6 +78,24 @@ def save_track_ids():
 
 
 def get_audio_features():
+    """
+    Retrieves audio features for specified track IDs using the Spotify API and saves them to a JSON file.
+
+    The function loads Spotify API credentials from 'config.yaml', authenticates with the Spotify API,
+    and fetches a list of track IDs from 'track_ids.json'. It then retrieves audio features for each
+    track ID using the Spotify API and saves the results to 'audio_features.json'.
+
+    Note:
+        Ensure that the 'config.yaml' file contains valid credentials in the 'credentials' section,
+        and the 'track_ids.json' file is present with the required track IDs.
+
+    Raises:
+        FileNotFoundError: If either 'config.yaml' or 'track_ids.json' is not found.
+
+    Example:
+        get_audio_features()
+
+    """
     # load credentials from yaml file
     print("entered get_audio_features!")
     with open('/home/airflow/airflow/dags/config.yaml', 'r') as yaml_file:

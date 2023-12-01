@@ -1,46 +1,8 @@
 from datetime import datetime, timedelta
 
-import findspark
 from airflow import DAG
 from airflow.operators.hdfs_operations import HdfsPutFileOperator, HdfsMkdirFileOperator
 from airflow.operators.hive_operator import HiveOperator
-from airflow.operators.python_operator import PythonOperator
-from pyspark.sql import SparkSession
-
-
-# Function to convert JSON to Parquet
-def json_to_parquet(json_file_path):
-    print("We're in the json_to_parquet function")
-    # Retrieve HDFS path from the context
-    # Construct Parquet output path by replacing '.json' with '.parquet'
-    parquet_output_path = json_file_path.replace('.json', '.parquet')
-    textfile_output_path = json_file_path.replace('.json', '.txt')
-
-    # Print paths for debugging
-    print(f"Input JSON path: {json_file_path}")
-    print(f"Output Parquet path: {parquet_output_path}")
-
-    findspark.init()
-    findspark.find()
-    # Initialize Spark session
-    spark = SparkSession.builder.appName("json_to_parquet").getOrCreate()
-
-    # Load JSON data into a DataFrame
-    df = spark.read.json(json_file_path)
-    df.show()
-
-    # Try txt
-    df.write.option("header", "false").option("delimiter", "\t").csv(textfile_output_path,
-                                                                     sep="\t",
-                                                                     mode="overwrite")
-
-    # Save DataFrame as Parquet
-    df.write.parquet(parquet_output_path, mode="overwrite")
-    print("Reached the end of the file.")
-
-    # Stop the Spark session
-    spark.stop()
-
 
 # Define the Hive query to create the table
 hiveSQL_create_music_and_genres_table = '''
@@ -97,14 +59,6 @@ with DAG(
         hdfs_conn_id='hdfs',
     )
 
-    # PySpark JSON to Parquet conversion task
-    json_to_parquet_task = PythonOperator(
-        task_id="json_to_parquet_task",
-        python_callable=json_to_parquet,
-        op_args=['/user/hadoop/spotify/track_data/final/music_and_genres.json'],
-        dag=dag,
-    )
-
     # Create a HiveOperator for table creation
     create_music_and_genres_table_task = HiveOperator(
         task_id='create_music_and_genres_table',
@@ -121,8 +75,7 @@ with DAG(
         dag=dag,
     )
 
-
     # Set task dependencies
-    create_hdfs_dir >> upload_to_hdfs >> upload_textfile_to_hdfs >> json_to_parquet_task
-    json_to_parquet_task >> create_music_and_genres_table_task >> hive_query_music_and_genres
-    hive_query_music_and_genres
+    create_hdfs_dir >> upload_to_hdfs >> upload_textfile_to_hdfs
+    upload_textfile_to_hdfs >> create_music_and_genres_table_task
+    create_music_and_genres_table_task >> hive_query_music_and_genres

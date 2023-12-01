@@ -28,6 +28,25 @@ def add_predicted_genre_column(df, y_pred, mapping):
 
 
 def predict_genre_from_spark_model():
+    """
+    Predicts music genres using a pre-trained Spark ML model and saves the results to JSON and CSV files.
+
+    The function initializes a Spark session, loads a pre-trained Spark ML model for genre prediction,
+    reads audio features from a JSON file, sets an unknown model parameter ('popularity') to the mean used
+    in the training data, and predicts genres using the loaded model. It then displays the DataFrame with
+    the predicted genre, maps the numerical predictions to human-readable genre names, and adds the
+    'predicted_genre' column to the DataFrame. Finally, it merges the result with track IDs and titles,
+    selects relevant columns, renames 'predicted_genre' to 'genre', and writes the resulting DataFrame
+    to JSON and CSV files.
+
+    Note:
+        Ensure that the pre-trained Spark ML model is saved in the specified path, and the audio features
+        JSON file ('cleaned_combined_data.json') is available in HDFS.
+
+    Example:
+        predict_genre_from_spark_model()
+
+    """
     # Initialize Spark session
     spark = SparkSession.builder.appName("GenrePrediction").getOrCreate()
 
@@ -38,11 +57,7 @@ def predict_genre_from_spark_model():
     audio_features_df = spark.read.json(
         'hdfs:///user/hadoop/spotify/track_data/final/model_data/cleaned_combined_data.json')
 
-    # Convert numeric columns to float
-    numeric_columns = ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness',
-                       'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo',
-                       'duration_ms', 'time_signature']
-
+    # Set an unknown model parameter, popularity, to the mean used in the training data
     audio_features_df = audio_features_df.withColumn('popularity', 43)
 
     # Predict using the loaded Spark ML model
@@ -51,7 +66,6 @@ def predict_genre_from_spark_model():
     # Extract the predicted genre column
     y_pred = predictions.select('prediction').alias('predicted_genre')
 
-    # Assuming 'y_pred' contains your predicted values
     predictions = predictions.withColumn('predicted_genre', y_pred)
 
     # Display the DataFrame with the predicted genre
@@ -95,9 +109,6 @@ def predict_genre_from_spark_model():
     # Write the resulting DataFrame to JSON and CSV files
     result_df.write.json("./data/music_and_genres.json", mode='overwrite')
     result_df.write.csv("./data/music_and_genres.csv", header=False, mode='overwrite')
-
-    # Stop the Spark session
-    spark.stop()
 
     # Stop the Spark session
     spark.stop()

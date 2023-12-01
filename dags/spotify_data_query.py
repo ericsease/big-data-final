@@ -9,7 +9,6 @@ from query_functions import save_track_ids, get_audio_features
 
 def query_data():
     save_track_ids()
-    print("now entering get_audio_features")
     get_audio_features()
 
 
