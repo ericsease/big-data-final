@@ -72,7 +72,6 @@ pip install Spotipy
 /Home/Airflow/airflow
 ├── App
 │   ├── __init__.py
-│   ├── app.py
 │   ├── run_flask_app.py
 │   └── Templates
 │       └── table.html
@@ -82,7 +81,6 @@ pip install Spotipy
     ├── config.yaml
     ├── query_functions.py
     ├── spotify_data_query.py
-    ├── hive_db_dag.py
     ├── html_frontend_dag.py
     ├── model_prediction_spark.py
     ├── pyspark_data_clean.py
